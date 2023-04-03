@@ -1,49 +1,27 @@
-/*******************************
-udp_client.c: the source file of the client in udp
-********************************/
-
 #include "headsock.h"
 
 void str_cli1(FILE *fp, int sockfd, struct sockaddr *addr, int addrlen, int *len);                
 
-int main(int argc, char *argv[])
-{
-	int len, sockfd;
+int main(int argc, char *argv[])    {
+	int len;
+    int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	struct sockaddr_in ser_addr;
-	char **pptr;
-	struct hostent *sh;
-	struct in_addr **addrs;
+	struct hostent *sh = gethostbyname(argv[1]);
+	struct in_addr **addrs = (struct in_addr **)sh->h_addr_list;
 
-	if (argc!= 2)
-	{
+	if (argc!= 2)   {
 		printf("parameters not match.");
 		exit(0);
 	}
 
-	if ((sh=gethostbyname(argv[1]))==NULL) {             //get host's information
+	if (sh == nullptr) {             //get host's information
 		printf("error when gethostbyname");
 		exit(0);
 	}
 
-	sockfd = socket(AF_INET, SOCK_DGRAM, 0);             //create socket
-	if (sockfd<0)
-	{
+	if (sockfd<0)   {
 		printf("error in socket");
 		exit(1);
-	}
-
-	addrs = (struct in_addr **)sh->h_addr_list;
-	printf("canonical name: %s\n", sh->h_name);
-	for (pptr=sh->h_aliases; *pptr != NULL; pptr++)
-		printf("the aliases name is: %s\n", *pptr);			//printf socket information
-	switch(sh->h_addrtype)
-	{
-		case AF_INET:
-			printf("AF_INET\n");
-		break;
-		default:
-			printf("unknown addrtype\n");
-		break;
 	}
 
 	ser_addr.sin_family = AF_INET;
@@ -57,8 +35,7 @@ int main(int argc, char *argv[])
 	exit(0);
 }
 
-void str_cli1(FILE *fp, int sockfd, struct sockaddr *addr, int addrlen, int *len)
-{
+void str_cli1(FILE *fp, int sockfd, struct sockaddr *addr, int addrlen, int *len)   {
 	char sends[MAXSIZE];
 
 	printf("Please input a string (less than 50 characters):\n");
