@@ -1,6 +1,6 @@
 #include "headsock.h"
 
-float str_cli2(int sockfd, long *len);
+float str_cli2(int sockfd, long *len, struct sockaddr *addr);
 void tv_sub(struct  timeval *out, struct timeval *in);	    //calcu the time interval between out and in
 
 int main(int argc, char *argv[])    {
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])    {
 	long len;
 	float rt;
 
-	float ti = str_cli2(sockfd, &len);
+	float ti = str_cli2(sockfd, &len, (struct sockaddr *)&ser_addr);
 	if (ti != -1)	{
 		rt = (len/(float)ti);                                         //caculate the average transmission rate
 		printf("Ave Time(ms) : %.3f, Ave Data sent(byte): %d\nAve Data rate: %f (Kbytes/s)\n", ti, (int)len, rt);
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])    {
 	exit(0);
 }
 
-float str_cli2(int sockfd, long *len) {
+float str_cli2(int sockfd, long *len, struct sockaddr *addr) {
 	FILE *fp = fopen ("myfile.txt","r+t");
 	if (fp == nullptr) {
 		printf("File doesn't exit\n");
@@ -51,7 +51,6 @@ float str_cli2(int sockfd, long *len) {
 	long lsize;
 	struct pack_so sends;
 	struct ack_so acks;
-	int n;
 	float time_inv = 0.0;
 	struct timeval sendt, recvt;
 
@@ -60,34 +59,34 @@ float str_cli2(int sockfd, long *len) {
 	rewind (fp);
 	printf("The file length is %d bytes\n", (int)lsize);
 	
-
   // copy the file into the buffer.
-	fread (sends.data,1,lsize,fp);					//read the file data into the data area in packet
+	fread (sends.data, 1, lsize, fp);									//read the file data into the data area in packet
 
   /*** the whole file is loaded in the buffer. ***/
 
-	gettimeofday(&sendt, NULL);							//get the current time
+	gettimeofday(&sendt, NULL);											//get the current time
 
-	sends.len = lsize;									//the data length
+	sends.len = lsize;													//the data length
 	sends.num = 0;
-	n=send(sockfd, &sends, (sends.len+HEADLEN), 0);		//send the data in one packet
+	int n = sendto(sockfd, &sends.data, strlen(sends.data), 0, addr, sizeof(struct sockaddr_in));				//send the data in one packet
 	if (n == -1)	{			
 		printf("error sending data\n");
 		exit(1);
+	}	else {
+		printf("%d data sent", n);
 	}
-	else printf("%d data sent", n);
-	if ((n=recv(sockfd, &acks, 2, 0)) == -1) {	        //receive ACK or NACK
+
+	if ((n=recv(sockfd, &acks, 2, 0)) == -1) {	        														//receive ACK or NACK
 		printf("error receiving data\n");
 		exit(1);
 	}
-	if ((acks.len == 0) && (acks.num == 1))         //if it is ACK
-	{
-		gettimeofday(&recvt, NULL);                                                         //get current time
-		tv_sub(&recvt, &sendt);                                                                 // get the whole trans time
-		time_inv += (recvt.tv_sec)*1000.0 + (recvt.tv_usec)/1000.0;
-		return(time_inv);
-	}
-	else	{
+
+	if ((acks.len == 0) && (acks.num == 1))  { 							// If it is ACK
+		gettimeofday(&recvt, NULL);                                     // get current time
+		tv_sub(&recvt, &sendt);                                         // get the whole trans time
+		time_inv += (recvt.tv_sec) * 1000.0 + (recvt.tv_usec)/1000.0;
+		return time_inv;
+	}	else	{
 		return(-1);
 		printf("Error in transmission\n");
 	}
