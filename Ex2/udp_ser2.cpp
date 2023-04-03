@@ -1,15 +1,12 @@
-/**************************************
-udp_ser.c: the source file of the server in udp transmission
-**************************************/
 #include "headsock.h"
 
 void str_ser1(int sockfd);                                                           // transmitting and receiving function
 
 int main(int argc, char *argv[])    {
-	int sockfd;
+	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	struct sockaddr_in my_addr;
 
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {			//create socket
+	if (sockfd == - 1) {			//create socket
 		printf("error in socket");
 		exit(1);
 	}
@@ -23,15 +20,12 @@ int main(int argc, char *argv[])    {
 		exit(1);
 	}
 	printf("start receiving\n");
-	while(1) {
-		str_ser1(sockfd);                        // send and receive
-	}
+	str_ser1(sockfd);                        // send and receive
 	close(sockfd);
 	exit(0);
 }
 
-void str_ser1(int sockfd)
-{
+void str_ser1(int sockfd)   {
 	char recvs[MAXSIZE];
 	int n = 0, len;
 	struct sockaddr_in addr;
