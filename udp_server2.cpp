@@ -4,14 +4,15 @@
 #include <arpa/inet.h>
 #include <fstream>
 #include <cassert>
-#define DATA_LEN 500
 
 struct ack_so   {
     uint8_t num;
     uint8_t len;
 };
 
-int main(void){
+int main(int argc, char* argv[]){
+    assert(argc == 2);
+    int data_len = std::stoi(argv[1]);
     // Create UDP socket:
     int socket_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     assert(socket_desc >= 0);
@@ -32,12 +33,12 @@ int main(void){
 
     while (1) {
         struct sockaddr_in client_addr;
-        char client_message[DATA_LEN];
+        char client_message[data_len];
         int client_struct_length = sizeof(client_addr);
         
         memset(client_message, '\0', sizeof(client_message));
         assert((n += recvfrom(socket_desc, client_message, sizeof(client_message), 0, (struct sockaddr*)&client_addr, (socklen_t *) &client_struct_length)) >= 0);
-        number_of_packets_received += 1;
+        number_of_packets_received += 1;     
         MyFile << client_message << std::flush;
 
         if (number_of_packets_received < upper_bound) continue; // Send an ACK only when we hit the upper bound.

@@ -5,7 +5,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include <cassert>
-#define DATA_LEN 500
+#include <string>
 
 struct ack_so   {
     uint8_t num;
@@ -20,7 +20,7 @@ void tv_sub(struct  timeval *out, struct timeval *in)   {
 	out->tv_sec -= in->tv_sec;
 }
 
-float sendFile(int socket_desc, struct sockaddr_in server_addr, int server_struct_length, long* length) {
+float sendFile(int socket_desc, struct sockaddr_in server_addr, int server_struct_length, long* length, int data_len) {
     // Process the file.
     FILE *fp = fopen("myfile.txt", "r+t");
     assert(fp != nullptr);
@@ -45,8 +45,8 @@ float sendFile(int socket_desc, struct sockaddr_in server_addr, int server_struc
     int upper_bound = 1;
     while (ci <= file_size) {
         // Determine the length of the file to send and copy it onto the buffer. We set the limit to 500 bytes.
-        char sends[DATA_LEN];
-		long slen = ((file_size + 1 - ci) <= DATA_LEN) ? file_size + 1 - ci : DATA_LEN;
+        char sends[data_len];
+		long slen = ((file_size + 1 - ci) <= data_len) ? file_size + 1 - ci : data_len;
 		memcpy(sends, client_message + ci, slen);
 
         // Send the file to the server.
@@ -68,7 +68,8 @@ float sendFile(int socket_desc, struct sockaddr_in server_addr, int server_struc
     return (recvt.tv_sec) * 1000.0 + (recvt.tv_usec) / 1000.0;
 }
 
-int main(void)  {    
+int main(int argc, char* argv[])  { 
+    assert(argc >= 2);
     // Create socket:
     int socket_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     assert(socket_desc >= 0);
@@ -82,7 +83,7 @@ int main(void)  {
     int server_struct_length = sizeof(server_addr);
 
     long length;
-    float time = sendFile(socket_desc, server_addr, server_struct_length, &length);
+    float time = sendFile(socket_desc, server_addr, server_struct_length, &length, std::stoi(argv[1]));
     printf("Transmission Time (ms):%.3f\n", time);
     printf("Data Length (bytes): %ld\n", length);
     printf("Data Rate (kbps): %.3f", length / (float) time);
