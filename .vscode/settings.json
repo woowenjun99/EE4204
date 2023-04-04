@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.ejs": "html",
+        "headsock.h": "c",
+        "fstream": "cpp",
+        "iosfwd": "cpp"
+    }
+}
