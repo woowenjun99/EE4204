@@ -38,7 +38,7 @@ int main(void){
         memset(client_message, '\0', sizeof(client_message));
         assert((n += recvfrom(socket_desc, client_message, sizeof(client_message), 0, (struct sockaddr*)&client_addr, (socklen_t *) &client_struct_length)) >= 0);
         number_of_packets_received += 1;
-        MyFile << client_message;
+        MyFile << client_message << std::flush;
 
         if (number_of_packets_received < upper_bound) continue; // Send an ACK only when we hit the upper bound.
         
