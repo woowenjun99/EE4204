@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <string.h>
+#include <cstring>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <fstream>
@@ -33,13 +33,14 @@ int main(int argc, char* argv[]){
 
     while (1) {
         struct sockaddr_in client_addr;
-        char client_message[data_len];
+        char *client_message = new char(data_len);
         int client_struct_length = sizeof(client_addr);
         
-        memset(client_message, '\0', sizeof(client_message));
-        assert((n += recvfrom(socket_desc, client_message, sizeof(client_message), 0, (struct sockaddr*)&client_addr, (socklen_t *) &client_struct_length)) >= 0);
-        number_of_packets_received += 1;     
+        memset(client_message, '\0', data_len);
+        assert((n += recvfrom(socket_desc, client_message, data_len, 0, (struct sockaddr*)&client_addr, (socklen_t *) &client_struct_length)) >= 0);
+        number_of_packets_received += 1;
         MyFile << client_message << std::flush;
+        delete client_message;
 
         if (number_of_packets_received < upper_bound) continue; // Send an ACK only when we hit the upper bound.
         
