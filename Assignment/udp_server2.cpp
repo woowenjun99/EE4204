@@ -40,7 +40,6 @@ int main(void){
         number_of_packets_received += 1;
         MyFile << client_message;
 
-        printf("The file size received is %d\n", n);
         if (number_of_packets_received < upper_bound) continue; // Send an ACK only when we hit the upper bound.
         
         number_of_packets_received = 0;

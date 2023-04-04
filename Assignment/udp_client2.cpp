@@ -5,7 +5,6 @@
 #include <time.h>
 #include <sys/time.h>
 #include <cassert>
-#include <fstream>
 #define DATA_LEN 500
 
 struct ack_so   {
@@ -44,13 +43,11 @@ float sendFile(int socket_desc, struct sockaddr_in server_addr, int server_struc
 
     int number_of_packets_sent = 0;
     int upper_bound = 1;
-    std::ofstream MyFile("myTCPreceive.txt");
     while (ci <= file_size) {
         // Determine the length of the file to send and copy it onto the buffer. We set the limit to 500 bytes.
         char sends[DATA_LEN];
 		long slen = ((file_size + 1 - ci) <= DATA_LEN) ? file_size + 1 - ci : DATA_LEN;
 		memcpy(sends, client_message + ci, slen);
-        MyFile << sends;
 
         // Send the file to the server.
         assert((ci += sendto(socket_desc, sends, slen, 0, (struct sockaddr*)&server_addr, server_struct_length)) >= 0);
@@ -64,14 +61,8 @@ float sendFile(int socket_desc, struct sockaddr_in server_addr, int server_struc
         // [acknowledgement] represents the ACK packet that we will get from the server.
         struct ack_so acknowledgement;
         assert(recvfrom(socket_desc, &acknowledgement, sizeof(acknowledgement), 0, (struct sockaddr*)&server_addr, (socklen_t *) &server_struct_length) >= 0);
-		
     }
     printf("The value of ci is %ld\n", ci);
-    FILE *new_file = fopen("myTCPreceive.txt", "r+t");
-    fseek(new_file, 0, 2);
-    long size = ftell(new_file);
-    printf("The size of the created file is %ld\n", size);
-
     gettimeofday(&recvt, nullptr);
     tv_sub(&recvt, &sendt);
     return (recvt.tv_sec) * 1000.0 + (recvt.tv_usec) / 1000.0;
