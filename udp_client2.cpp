@@ -46,6 +46,7 @@ float sendFile(int socket_desc, struct sockaddr_in server_addr, int server_struc
     while (ci <= file_size) {
         // Determine the length of the file to send and copy it onto the buffer. We set the limit to 500 bytes.
         char sends[data_len];
+        memset(sends, '\0', data_len);
 		long slen = ((file_size + 1 - ci) <= data_len) ? file_size + 1 - ci : data_len;
 		memcpy(sends, client_message + ci, slen);
 
